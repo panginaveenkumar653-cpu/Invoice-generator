@@ -1,0 +1,277 @@
+{
+  "info": {
+    "name": "Invoice Generator API",
+    "description": "Auth, client, and invoice API requests. Register or log in first; the login test stores the JWT in the collection variable {{token}}.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:5000",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "clientId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "invoiceId",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Register",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Alex Freelancer\",\n  \"email\": \"alex@example.com\",\n  \"password\": \"change-me-123\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": "{{baseUrl}}/api/auth/register"
+          }
+        },
+        {
+          "name": "Login (saves token)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Login succeeds', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "const response = pm.response.json();",
+                  "if (response.token) {",
+                  "  pm.collectionVariables.set('token', response.token);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"alex@example.com\",\n  \"password\": \"change-me-123\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": "{{baseUrl}}/api/auth/login"
+          }
+        },
+        {
+          "name": "Get current user",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/auth/me"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Clients",
+      "item": [
+        {
+          "name": "Create client",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "  const response = pm.response.json();",
+                  "  if (response.data && response.data._id) pm.collectionVariables.set('clientId', response.data._id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Acme Studio\",\n  \"email\": \"billing@acme.example\",\n  \"phone\": \"+1 555 0100\",\n  \"address\": \"100 Market Street\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": "{{baseUrl}}/api/clients"
+          }
+        },
+        {
+          "name": "List clients (paginated)",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/clients?page=1&limit=10"
+          }
+        },
+        {
+          "name": "Get client by ID",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/clients/{{clientId}}"
+          }
+        },
+        {
+          "name": "Update client",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Acme Studio Updated\",\n  \"email\": \"accounts@acme.example\",\n  \"phone\": \"+1 555 0199\",\n  \"address\": \"200 Market Street\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": "{{baseUrl}}/api/clients/{{clientId}}"
+          }
+        },
+        {
+          "name": "Delete client",
+          "request": {
+            "method": "DELETE",
+            "url": "{{baseUrl}}/api/clients/{{clientId}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Invoices",
+      "item": [
+        {
+          "name": "Create invoice",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "  const response = pm.response.json();",
+                  "  if (response.data && response.data._id) pm.collectionVariables.set('invoiceId', response.data._id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"client\": \"{{clientId}}\",\n  \"invoiceNumber\": \"INV-EXAMPLE-001\",\n  \"dueDate\": \"2026-12-31\",\n  \"taxRate\": 18,\n  \"status\": \"draft\",\n  \"notes\": \"Thank you for your business.\",\n  \"items\": [\n    { \"description\": \"Design work\", \"quantity\": 2, \"rate\": 125 },\n    { \"description\": \"Consulting\", \"quantity\": 1, \"rate\": 80 }\n  ]\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": "{{baseUrl}}/api/invoices"
+          }
+        },
+        {
+          "name": "List invoices (paginated and filtered)",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/invoices?page=1&limit=10&status=draft&client={{clientId}}"
+          }
+        },
+        {
+          "name": "Get invoice by ID",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/invoices/{{invoiceId}}"
+          }
+        },
+        {
+          "name": "Update invoice",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"client\": \"{{clientId}}\",\n  \"dueDate\": \"2026-12-31\",\n  \"taxRate\": 10,\n  \"status\": \"sent\",\n  \"notes\": \"Updated terms\",\n  \"items\": [\n    { \"description\": \"Design work\", \"quantity\": 3, \"rate\": 125 },\n    { \"description\": \"Consulting\", \"quantity\": 1, \"rate\": 80 }\n  ]\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": "{{baseUrl}}/api/invoices/{{invoiceId}}"
+          }
+        },
+        {
+          "name": "Change invoice status",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"paid\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": "{{baseUrl}}/api/invoices/{{invoiceId}}/status"
+          }
+        },
+        {
+          "name": "Search invoices",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/invoices/search?q=INV&page=1&limit=10"
+          }
+        },
+        {
+          "name": "Invoice statistics",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/invoices/stats"
+          }
+        },
+        {
+          "name": "Download invoice PDF",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/pdf" }],
+            "url": "{{baseUrl}}/api/invoices/{{invoiceId}}/pdf"
+          }
+        },
+        {
+          "name": "Delete invoice",
+          "request": {
+            "method": "DELETE",
+            "url": "{{baseUrl}}/api/invoices/{{invoiceId}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Client invoices",
+      "item": [
+        {
+          "name": "List invoices for client (paginated)",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/clients/{{clientId}}/invoices?page=1&limit=10"
+          }
+        }
+      ]
+    }
+  ]
+}
