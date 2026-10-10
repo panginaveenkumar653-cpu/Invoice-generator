@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-
+require('dotenv').config()
 async function connectDB() {
   if (process.env.STORAGE_MODE === 'local-json') {
     console.log('Using local JSON data store for development');
