@@ -21,17 +21,8 @@ const allowedOrigins = (process.env.ALLOWED_ORIGIN || '')
   .filter(Boolean);
 const allowAllInDevelopment = process.env.NODE_ENV !== 'production' && allowedOrigins.length === 0;
 
-app.use(cors({
-  origin(origin, callback) {
-    // Requests without an Origin header (for example, health checks) are not
-    // browser cross-origin requests and can proceed normally.
-    if (!origin || allowAllInDevelopment || allowedOrigins.includes(normalizeOrigin(origin))) {
-      return callback(null, true);
-    }
-    console.warn(`Blocked browser origin by CORS: ${origin}`);
-    return callback(null, false);
-  },
-}));
+app.use(cors());
+
 app.use(express.json());
 
 app.use('/api/auth', authRoutes);
