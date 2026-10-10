@@ -21,7 +21,7 @@ const allowedOrigins = (process.env.ALLOWED_ORIGIN || '')
   .filter(Boolean);
 const allowAllInDevelopment = process.env.NODE_ENV !== 'production' && allowedOrigins.length === 0;
 
-app.use(cors());
+app.use(cors())
 
 app.use(express.json());
 
