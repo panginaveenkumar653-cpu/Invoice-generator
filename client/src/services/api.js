@@ -2,7 +2,7 @@ import axios from 'axios';
 
 export const TOKEN_STORAGE_KEY = 'token';
 export const USER_STORAGE_KEY = 'user';
-export const API_BASE_URL = "https://invoice-generator-backend-db8p.onrender.com/api";
+export const API_BASE_URL = "https://invoice-generator-backend-db8p.onrender.com-api";
 
 const api = axios.create({
   baseURL: API_BASE_URL,
